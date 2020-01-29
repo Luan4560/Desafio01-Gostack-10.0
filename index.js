@@ -6,6 +6,24 @@ server.use(express.json());
 
 const projects = [];
 
+function countRequest(req, res, next) {
+  console.count("Number of requisitions");
+
+  return next();
+};
+
+function verifyId(req, res, next) {
+  const { id } = req.params;
+  const project = projects.find(index => index.id == id);
+
+  if (!project) {
+    return res.status(400).json({ error: 'Project does not exists' });
+  }
+  return next();
+}
+
+server.use(countRequest);
+
 server.post("/projects", (req, res) => {
   const { id, title, tasks } = req.body;
 
@@ -22,7 +40,7 @@ server.get("/projects", (req, res) => {
   return res.json(projects);
 });
 
-server.put("/projects/:id", (req, res) => {
+server.put("/projects/:id", verifyId, (req, res) => {
   const { id } = req.params;
   const { title } = req.body;
 
@@ -33,17 +51,17 @@ server.put("/projects/:id", (req, res) => {
   return res.json(updateTitle);
 });
 
-server.delete("/projects/:id", (req, res) => {
+server.delete("/projects/:id", verifyId, (req, res) => {
   const { id } = req.params;
 
   const deleteProject = projects.findIndex(index => index.id == id);
 
   projects.splice(deleteProject, 1);
 
-  return res.status(200).send("[Ok] Deleted project");
+  return res.status(200).json({ Ok: 'Project was deleted' });
 });
 
-server.post("/projects/:id/tasks", (req, res) => {
+server.post("/projects/:id/tasks", verifyId, (req, res) => {
   const { id } = req.params;
   const { title } = req.body;
 
